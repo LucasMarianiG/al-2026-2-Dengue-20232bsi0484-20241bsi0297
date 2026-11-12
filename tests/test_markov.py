@@ -1,7 +1,11 @@
 import numpy as np
 import pytest
 
-from src.markov import calcula_distribuicao_estacionaria_sistema
+from src.markov import (
+    calcula_distribuicao_estacionaria_sistema,
+    calcula_distribuicao_estacionaria_potencias,
+    calcula_distribuicao_estacionaria_autovetor
+)
 
 # Matriz de referência Pref (Tabela 1) do enunciado
 P_REF = np.array([
@@ -39,3 +43,21 @@ def test_meia_vida_referencia():
     
     # mv_calculada = calcula_meia_vida(P_REF)
     # np.testing.assert_allclose(mv_calculada, meia_vida_esperada, atol=1e-6)
+
+def test_distribuicao_estacionaria_potencias():
+    """Verifica se o método das potências chega ao mesmo vetor pi (E3)."""
+    pi_esperado = np.array([0.498970, 0.205954, 0.174125, 0.120951])
+    
+    pi_calculado = calcula_distribuicao_estacionaria_potencias(P_REF)
+    
+    np.testing.assert_allclose(pi_calculado, pi_esperado, atol=1e-6)
+
+
+
+def test_distribuicao_estacionaria_autovetor():
+    """Verifica se o método do autovetor chega ao mesmo vetor pi (E3)."""
+    pi_esperado = np.array([0.498970, 0.205954, 0.174125, 0.120951])
+    
+    pi_calculado = calcula_distribuicao_estacionaria_autovetor(P_REF)
+    
+    np.testing.assert_allclose(pi_calculado, pi_esperado, atol=1e-6)
