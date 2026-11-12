@@ -15,6 +15,8 @@ P_REF = np.array([
     [0.00, 0.05, 0.20, 0.75]
 ])
 
+# [IA] Gemini - 2026-11-12 - Estrutura inicial e implementação dos 3 métodos da Etapa 3
+
 def test_matriz_estocastica():
     """Verifica se as linhas somam 1 e não há valores negativos (E2)."""
     assert np.all(P_REF >= 0)
