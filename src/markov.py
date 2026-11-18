@@ -242,3 +242,51 @@ def numero_condicao_1(V):
     Vinv = np.linalg.solve(V, np.eye(V.shape[0]))
     return norma_1(V) * norma_1(Vinv)
 # [/IA]
+
+
+# [IA] Claude Sonnet 5.5 - 2026-11-18 - src/markov.py (E5): primeira passagem por 4 sistemas 3x3 e pela matriz fundamental Z
+def primeira_passagem_sistemas(P):
+    """Matriz M = (m_ij) de tempos médios de primeira passagem, por um sistema (n−1)×(n−1) por estado-alvo j.
+
+    Condicionando no primeiro passo (equação (2) do enunciado): para i ≠ j,
+        m_ij = 1 + Σ_{k≠j} p_ik m_kj   ⇔   (I − Q_j) m_·j = 1,
+    em que Q_j é P sem a linha e a coluna j. Com m_·j resolvido, o tempo de retorno é
+        m_jj = 1 + Σ_{k≠j} p_jk m_kj   (e, por Kac, m_jj = 1/π_j).
+    Com n = 4 são quatro sistemas 3×3, resolvidos por np.linalg.solve (LU com pivotamento).
+    """
+    P = validar_estocastica(P)
+    n = P.shape[0]
+    M = np.zeros((n, n))
+    for j in range(n):
+        idx = [k for k in range(n) if k != j]
+        Q = P[np.ix_(idx, idx)]
+        try:
+            m = np.linalg.solve(np.eye(n - 1) - Q, np.ones(n - 1))
+        except np.linalg.LinAlgError as erro:
+            raise ValueError(f"estado {j + 1} não é alcançável a partir de todos os outros: (I − Q) singular") from erro
+        M[idx, j] = m
+        M[j, j] = 1.0 + P[j, idx] @ m
+    return M
+
+
+def matriz_fundamental_Z(P, pi=None):
+    """Matriz fundamental da cadeia ergódica: Z = (I − P + 1π)⁻¹ (inversa por LU). π é calculado se omitido."""
+    P = validar_estocastica(P)
+    if pi is None:
+        pi = calcula_distribuicao_estacionaria_sistema(P)
+    pi = np.asarray(pi, dtype=float)
+    n = P.shape[0]
+    return np.linalg.solve(np.eye(n) - P + np.outer(np.ones(n), pi), np.eye(n))
+
+
+def primeira_passagem_fundamental(P, pi=None):
+    """M pela fórmula matricial: m_ij = (z_jj − z_ij)/π_j para i ≠ j, e m_jj = 1/π_j (Kac)."""
+    P = validar_estocastica(P)
+    if pi is None:
+        pi = calcula_distribuicao_estacionaria_sistema(P)
+    pi = np.asarray(pi, dtype=float)
+    Z = matriz_fundamental_Z(P, pi)
+    M = (np.diag(Z)[None, :] - Z) / pi[None, :]
+    np.fill_diagonal(M, 1.0 / pi)
+    return M
+# [/IA]
