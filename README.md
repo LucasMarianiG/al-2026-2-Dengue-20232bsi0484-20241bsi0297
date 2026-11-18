@@ -7,7 +7,7 @@ Professor: Fidelis Zanetti de Castro. Entrega: 08/12/2026, 23h59.
 
 | Nome | Matrícula | GitHub |
 |---|---|---|
-| Lucas Marini Gomes | 20232bsi0484 | @LucasMarianiG |
+| Lucas Mariani Gomes | 20232bsi0484 | @LucasMarianiG |
 | Caio Sperandio Santos | 20241bsi0297 | @sscaioss |
 
 ## Objetivo
@@ -64,7 +64,7 @@ relatorio/
 
 | Etapa | Situação |
 |---|---|
-| E1 aquisição e congelamento | concluída |
+| E1 funções (`src/dados.py`) e testes | concluída |
 | E1 auditoria, gráficos, Canais 2 e 3 | em andamento |
 | E2 a E8 | pendentes |
 
