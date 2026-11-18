@@ -102,3 +102,4 @@ def test_serie_real_serra_dois_caminhos_concordam():
     np.testing.assert_array_equal(C1, C2)
     assert C1.sum() == 573                                   # serie sem lacunas: 574 - 1
     assert int(s["nivel"].value_counts().sum()) == 574       # soma por nivel = total observado
+# [/IA]
