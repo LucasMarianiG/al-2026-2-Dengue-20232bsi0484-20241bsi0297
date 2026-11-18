@@ -4,7 +4,9 @@ import pytest
 from src.markov import (
     calcula_distribuicao_estacionaria_sistema,
     calcula_distribuicao_estacionaria_potencias,
-    calcula_distribuicao_estacionaria_autovetor
+    calcula_distribuicao_estacionaria_autovetor,
+    calcula_espectro,
+    calcula_meia_vida,
 )
 
 # Matriz de referência Pref (Tabela 1) do enunciado
@@ -32,21 +34,19 @@ def test_distribuicao_estacionaria_referencia():
     # Compara se o cálculo bate com o valor esperado com precisão de 6 casas decimais
     np.testing.assert_allclose(pi_calculado, pi_esperado, atol=1e-6)
 
-@pytest.mark.skip(reason="E4 ainda nao implementada (calcula_espectro)")
 def test_espectro_referencia():
     """Verifica os autovalores ordenados por módulo da Tabela 1 (E4)."""
     espectro_esperado = np.array([1.0, 0.869971, 0.618816, 0.461213])
-    
-    # autovalores = calcula_espectro(P_REF)
-    # np.testing.assert_allclose(autovalores, espectro_esperado, atol=1e-6)
-    
-@pytest.mark.skip(reason="E4 ainda nao implementada (calcula_meia_vida)")
+
+    autovalores = calcula_espectro(P_REF)
+    np.testing.assert_allclose(autovalores, espectro_esperado, atol=1e-6)
+
 def test_meia_vida_referencia():
     """Verifica o cálculo da meia-vida da Tabela 1 (E4)."""
     meia_vida_esperada = 4.976086
-    
-    # mv_calculada = calcula_meia_vida(P_REF)
-    # np.testing.assert_allclose(mv_calculada, meia_vida_esperada, atol=1e-6)
+
+    mv_calculada = calcula_meia_vida(P_REF)
+    np.testing.assert_allclose(mv_calculada, meia_vida_esperada, atol=1e-6)
 
 def test_distribuicao_estacionaria_potencias():
     """Verifica se o método das potências chega ao mesmo vetor pi (E3)."""

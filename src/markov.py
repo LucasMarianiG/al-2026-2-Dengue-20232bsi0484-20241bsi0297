@@ -111,3 +111,134 @@ def menor_k_positivo(P, k_max=None):
         atual = (atual.astype(np.uint8) @ padrao.astype(np.uint8)) > 0
     return None
 # [/IA]
+
+
+# [IA] Claude Sonnet 5.5 - 2026-11-18 - src/markov.py (E4): espectro por dois caminhos, meia-vida, potencias por tres caminhos, diagonalizacao e kappa_1
+def _ordenar_por_modulo(autovalores):
+    """Índices que ordenam por módulo decrescente; empates (par conjugado) com parte imaginária positiva primeiro."""
+    return sorted(range(len(autovalores)),
+                  key=lambda i: (-round(float(abs(autovalores[i])), 9), -float(np.imag(autovalores[i]))))
+
+
+def _enxugar(v, tol=1e-12):
+    """Devolve v real se a parte imaginária de todas as entradas for desprezível; senão, complexo."""
+    v = np.asarray(v)
+    if np.iscomplexobj(v) and np.abs(v.imag).max() <= tol:
+        return v.real.copy()
+    return v
+
+
+def calcula_espectro(P):
+    """Autovalores de P (caminho 1: np.linalg.eig, algoritmo QR sobre a forma de Hessenberg),
+    ordenados por módulo decrescente. Real se não houver parte imaginária; complexo caso contrário."""
+    P = validar_estocastica(P)
+    lam = np.linalg.eigvals(P)
+    return _enxugar(lam[_ordenar_por_modulo(lam)])
+
+
+def polinomio_caracteristico(P):
+    """Coeficientes [c0=1, c1, ..., cn] de det(xI − P) = x^n + c1 x^(n−1) + ... + cn (Faddeev–LeVerrier).
+
+    Algoritmo (n passos, só produtos de matrizes e traços): M0 = 0; Mk = P M(k−1) + c(k−1) I; ck = −tr(P Mk)/k.
+    Daí: c1 = −tr(P) e cn = (−1)^n det(P). Independente de np.linalg.eig e np.linalg.det.
+    """
+    P = np.asarray(P, dtype=float)
+    n = P.shape[0]
+    I = np.eye(n)
+    M = np.zeros((n, n))
+    c = np.zeros(n + 1)
+    c[0] = 1.0
+    for k in range(1, n + 1):
+        M = P @ M + c[k - 1] * I
+        c[k] = -np.trace(P @ M) / k
+    return c
+
+
+def espectro_por_polinomio(P):
+    """Caminho 2 para o espectro: raízes do polinômio característico de Faddeev–LeVerrier (np.roots),
+    ordenadas por módulo decrescente."""
+    P = validar_estocastica(P)
+    raizes = np.roots(polinomio_caracteristico(P))
+    return _enxugar(raizes[_ordenar_por_modulo(raizes)])
+
+
+def calcula_meia_vida(P):
+    """Meia-vida ln(1/2)/ln|λ2| em semanas: passos para o erro cair à metade. +inf se |λ2| ≥ 1 (sem convergência)."""
+    modulo2 = abs(calcula_espectro(P)[1])
+    if modulo2 >= 1.0:
+        return float("inf")
+    return float(np.log(0.5) / np.log(modulo2))
+
+
+def potencia_por_multiplicacao(P, n):
+    """P^n por n−1 produtos sucessivos (caminho de referência, lento: serve de conferência)."""
+    P = np.asarray(P, dtype=float)
+    if n < 0:
+        raise ValueError("n deve ser ≥ 0")
+    R = np.eye(P.shape[0])
+    for _ in range(n):
+        R = R @ P
+    return R
+
+
+def potencia_quadrados_sucessivos(P, n):
+    """P^n por quadrados sucessivos (exponenciação binária), escrita explicitamente.
+
+    Lê n em binário do bit menos significativo: a cada bit 1 multiplica o resultado pela base atual;
+    depois eleva a base ao quadrado (P, P², P⁴, P⁸, ...). Devolve (P^n, número de produtos de matrizes).
+    """
+    P = np.asarray(P, dtype=float)
+    if P.ndim != 2 or P.shape[0] != P.shape[1]:
+        raise ValueError("P deve ser quadrada")
+    if n < 0 or int(n) != n:
+        raise ValueError("n deve ser inteiro ≥ 0")
+    n = int(n)
+    resultado = None
+    base = P.copy()
+    produtos = 0
+    while n > 0:
+        if n & 1:
+            if resultado is None:
+                resultado = base.copy()
+            else:
+                resultado = resultado @ base
+                produtos += 1
+        n >>= 1
+        if n:
+            base = base @ base
+            produtos += 1
+    if resultado is None:
+        resultado = np.eye(P.shape[0])
+    return resultado, produtos
+
+
+def diagonaliza(P):
+    """P = V Λ V⁻¹ com autovalores por módulo decrescente. Devolve (V, lam, Vinv).
+
+    V vem de np.linalg.eig (colunas com norma 2 igual a 1); V⁻¹ por np.linalg.solve(V, I) (fatoração LU).
+    Só vale se P for diagonalizável (V invertível); caso contrário a inversa falha ou fica muito mal condicionada.
+    """
+    P = validar_estocastica(P)
+    lam, V = np.linalg.eig(P)
+    ordem = _ordenar_por_modulo(lam)
+    lam, V = lam[ordem], V[:, ordem]
+    Vinv = np.linalg.solve(V, np.eye(P.shape[0]))
+    return V, lam, Vinv
+
+
+def potencia_por_diagonalizacao(V, lam, Vinv, n):
+    """P^n = V diag(λ^n) V⁻¹. Pode ser complexa (par conjugado); a parte imaginária é ruído numérico."""
+    return (V * np.asarray(lam) ** n) @ Vinv
+
+
+def norma_1(M):
+    """Norma 1 induzida: maior soma dos módulos por coluna."""
+    return float(np.abs(np.asarray(M)).sum(axis=0).max())
+
+
+def numero_condicao_1(V):
+    """κ1(V) = ‖V‖1 ‖V⁻¹‖1 (inversa por LU). Depende da normalização das colunas de V."""
+    V = np.asarray(V)
+    Vinv = np.linalg.solve(V, np.eye(V.shape[0]))
+    return norma_1(V) * norma_1(Vinv)
+# [/IA]
