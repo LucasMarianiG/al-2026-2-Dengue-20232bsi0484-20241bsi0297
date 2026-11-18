@@ -49,7 +49,7 @@ def inicio_se1(ano: int) -> pd.Timestamp:
     semana que contém pelo menos 4 dias do ano, ou seja, a que contém o dia 4 de janeiro.
     """
     jan4 = pd.Timestamp(year=ano, month=1, day=4)
-    return jan4 - pd.Timedelta(days=(jan4.dayofweek + 1) % 7)  # dayofweek: segunda=0 ... domingo=6
+    return jan4 - pd.Timedelta(days=(jan4.day_of_week + 1) % 7)  # day_of_week: segunda=0 ... domingo=6
 
 
 def semanas_esperadas(ano_ini: int = ANO_INI, ano_fim: int = ANO_FIM) -> pd.DatetimeIndex:

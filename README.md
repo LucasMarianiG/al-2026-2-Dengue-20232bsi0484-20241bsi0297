@@ -21,8 +21,9 @@ não estima casos, não prevê óbitos e não estabelece causas.
 ## Municípios analisados
 
 - **Serra** (3205002): município comum a todas as equipes.
-- **Vitória** (3205309): município escolhido pela equipe. Justificativa e elegibilidade
-  (≥ 5 semanas em cada nível e ≥ 400 transições válidas) serão registradas após a Etapa 1.
+- **Vitória** (3205309): município escolhido pela equipe. Elegível: 294, 139, 48 e 93 semanas
+  nos níveis 1 a 4 (mínimo exigido: 5) e 573 transições válidas (mínimo: 400); ver
+  `results/tabelas/e1_segundo_municipio.csv`. Justificativa da escolha: a completar pela equipe.
 - **ES agregado**: soma das matrizes de contagem dos 78 municípios.
 
 ## Ambiente
@@ -54,8 +55,8 @@ executado de novo: o script recusa rodar se o manifesto já existe.
 ```
 README.md          IA_REGISTRO.md     requirements.txt     pytest.ini     run_all.py
 data/raw/          data/MANIFEST.txt
-src/               download.py, markov.py, etapa1.py ... etapa8.py
-tests/             test_markov.py
+src/               download.py, dados.py, markov.py, etapa1.py ... etapa8.py
+tests/             test_markov.py, test_dados.py, test_etapa1.py, test_markov_e3.py, test_etapa3.py
 results/tabelas/   results/figuras/
 relatorio/
 ```
@@ -64,13 +65,25 @@ relatorio/
 
 | Etapa | Situação |
 |---|---|
-| E1 funções (`src/dados.py`) e testes | concluída |
-| E1 auditoria, gráficos, Canais 2 e 3 | em andamento |
-| E2 a E8 | pendentes |
+| E1 funções (`src/dados.py`), auditoria, elegibilidade, gráficos e testes | concluída |
+| E1 conferência nos Canais 2 e 3 (10 semanas; boletim da Sesa) | pendente |
+| E2 (matriz estimada, erros-padrão, Laplace) | pendente |
+| E3 (π por três métodos, iterações, primitividade, Wielandt) | código, testes e resultados concluídos; revisão pendente |
+| E4 a E8 | pendentes |
 
 ## Figuras e tabelas do relatório → arquivo que as gera
 
-A preencher conforme as etapas forem concluídas.
+Numeração no relatório a definir; `run_all.py` ainda não existe (gera tudo abaixo quando estiver pronto).
+
+| Item | Arquivo | Gerado por |
+|---|---|---|
+| Auditoria dos 78 municípios (E1) | `results/e1_auditoria.csv` | `src/etapa1.py` |
+| Escolha e elegibilidade do 2º município (E1) | `results/tabelas/e1_segundo_municipio.csv` | `src/etapa1.py` |
+| Sequência de níveis de Serra (E1) | `results/figuras/e1_serie_serra.png` | `src/etapa1.py` |
+| Mapa de calor município × ano (E1) | `results/figuras/e1_mapa_calor.png` | `src/etapa1.py` |
+| π por método, iterações e resíduos (E3) | `results/tabelas/e3_pi_metodos.csv` | `src/etapa3.py` |
+| Resumo da E3: menor k, Wielandt, \|λ₂\|, discordância (E3) | `results/tabelas/e3_resumo.csv` | `src/etapa3.py` |
+| Convergência do método das potências em Serra (E3) | `results/figuras/e3_convergencia_serra.png` | `src/etapa3.py` |
 
 ## Uso de IA
 

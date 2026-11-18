@@ -29,7 +29,7 @@ def test_semanas_esperadas_2015_2025():
     assert len(esp) == 574
     assert esp[0] == pd.Timestamp("2015-01-04")
     assert esp[-1] == pd.Timestamp("2025-12-28")
-    assert (esp.dayofweek == 6).all()  # todas domingo
+    assert (esp.day_of_week == 6).all()  # todas domingo
     assert (np.diff(esp.values) == np.timedelta64(7, "D")).all()
 
 
