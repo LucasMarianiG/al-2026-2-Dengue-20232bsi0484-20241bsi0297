@@ -1,67 +1,113 @@
+"""Núcleo matemático das cadeias de Markov (Etapa 3): distribuição estacionária por três caminhos,
+primitividade (menor k com P^k > 0) e limite de Wielandt.
+
+Convenção: P é estocástica por linhas (cada linha soma 1) e π é vetor-linha com πP = π.
+"""
+# [IA] Claude Sonnet 5.5 - 2026-11-18 - Reescrita de src/markov.py: validação, potências com diagnóstico, autovetor com checagens, resíduo, menor k e Wielandt (base original do autor B com Gemini)
+import warnings
+from typing import NamedTuple
+
 import numpy as np
 
+
+def validar_estocastica(P, tol=1e-12):
+    """Confere que P é quadrada, sem entradas negativas e com linhas somando 1. Devolve P como float."""
+    P = np.asarray(P, dtype=float)
+    if P.ndim != 2 or P.shape[0] != P.shape[1]:
+        raise ValueError(f"P deve ser quadrada; formato recebido: {P.shape}")
+    if (P < 0).any():
+        raise ValueError("P tem entradas negativas")
+    if not np.allclose(P.sum(axis=1), 1.0, atol=tol, rtol=0):
+        raise ValueError("as linhas de P devem somar 1")
+    return P
+
+
 def calcula_distribuicao_estacionaria_sistema(P):
+    """Caminho (i): resolve (Pᵀ − I)πᵀ = 0 com a última equação trocada por Σπ = 1 (LU com pivotamento).
+
+    Se a cadeia tiver mais de uma classe recorrente, o sistema fica singular e levanta LinAlgError.
     """
-    Calcula a distribuição estacionária pi resolvendo o sistema linear (P^T - I)pi^T = 0
-    com a condição de normalização sum(pi) = 1 (Caminho 1 da Etapa 3).
-    """
+    P = validar_estocastica(P)
     n = P.shape[0]
-    
-    # Monta a matriz A = (P^T - I)
     A = P.T - np.eye(n)
-    
-    # Substitui a última equação pela condição de normalização: pi_1 + pi_2 + ... + pi_n = 1
     A[-1, :] = 1.0
-    
-    # O lado direito da equação (b): zeros, com 1 na última posição
     b = np.zeros(n)
     b[-1] = 1.0
-    
-    # np.linalg.solve utiliza fatoração LU com pivotamento parcial (anotar isso no relatório)
-    pi = np.linalg.solve(A, b)
-    
-    return pi
+    return np.linalg.solve(A, b)
 
-def calcula_distribuicao_estacionaria_potencias(P, tol=1e-12, max_iter=10000):
+
+class ResultadoPotencias(NamedTuple):
+    pi: np.ndarray
+    iteracoes: int
+    convergiu: bool
+
+
+def calcula_distribuicao_estacionaria_potencias(P, pi0=None, tol=1e-12, max_iter=100_000):
+    """Caminho (ii): itera π(k+1) = π(k)P até ‖π(k+1) − π(k)‖₁ < tol.
+
+    pi0 é a distribuição inicial (padrão: uniforme). Devolve (pi, iteracoes, convergiu);
+    se não convergir em max_iter passos (ex.: cadeia periódica), avisa com RuntimeWarning.
     """
-    Calcula a distribuição estacionária pi iterando pi^(k+1) = pi^(k) * P
-    até que a diferença (norma L1) seja menor que a tolerância (Caminho 2 da Etapa 3).
-    """
+    P = validar_estocastica(P)
     n = P.shape[0]
-    
-    # Começa com uma distribuição uniforme (poderia ser e_1 ou e_4 como pede o enunciado)
-    pi = np.ones(n) / n 
-    
-    iteracoes = 0
-    while iteracoes < max_iter:
-        pi_novo = np.dot(pi, P)
-        
-        # Critério de parada: norma L1 da diferença (soma dos valores absolutos)
-        erro = np.sum(np.abs(pi_novo - pi))
+    pi = np.full(n, 1.0 / n) if pi0 is None else np.asarray(pi0, dtype=float).copy()
+    if pi.shape != (n,) or (pi < 0).any() or abs(pi.sum() - 1.0) > 1e-9:
+        raise ValueError("pi0 deve ser distribuição de probabilidade com n entradas")
+    for k in range(1, max_iter + 1):
+        novo = pi @ P
+        erro = np.abs(novo - pi).sum()
+        pi = novo
         if erro < tol:
-            break
-            
-        pi = pi_novo
-        iteracoes += 1
-        
-    return pi
+            return ResultadoPotencias(pi, k, True)
+    warnings.warn(f"método das potências não convergiu em {max_iter} iterações (último passo: {erro:.2e})",
+                  RuntimeWarning, stacklevel=2)
+    return ResultadoPotencias(pi, max_iter, False)
 
 
 def calcula_distribuicao_estacionaria_autovetor(P):
+    """Caminho (iii): autovetor à esquerda de P para λ = 1 (autovetor de Pᵀ), normalizado para somar 1.
+
+    Exige λ = 1 simples (cadeia com uma só classe recorrente); senão levanta ValueError.
     """
-    Calcula a distribuição estacionária pi encontrando o autovetor à esquerda 
-    associado ao autovalor 1 (Caminho 3 da Etapa 3).
-    """
-    # Calcula autovalores e autovetores de P transposta
+    P = validar_estocastica(P)
     autovalores, autovetores = np.linalg.eig(P.T)
-    
-    # Encontra o índice do autovalor mais próximo de 1
-    indice_lambda_1 = np.argmin(np.abs(autovalores - 1.0))
-    
-    # Extrai o autovetor correspondente (e garante que pegamos apenas a parte real)
-    pi_nao_normalizado = np.real(autovetores[:, indice_lambda_1])
-    
-    # Normaliza para que a soma seja 1
-    pi = pi_nao_normalizado / np.sum(pi_nao_normalizado)
-    
-    return pi
+    perto_de_1 = np.abs(autovalores - 1.0) < 1e-9
+    if perto_de_1.sum() != 1:
+        raise ValueError(f"autovalor 1 não é simples (multiplicidade encontrada: {int(perto_de_1.sum())})")
+    v = autovetores[:, np.argmax(perto_de_1)]
+    if np.abs(v.imag).max() > 1e-9 * max(1.0, np.abs(v.real).max()):
+        raise ValueError("autovetor de λ = 1 com parte imaginária relevante")
+    v = v.real
+    return v / v.sum()
+
+
+def residuo_estacionario(pi, P):
+    """‖πP − π‖₁: quanto π falha em ser estacionária (zero para o π verdadeiro)."""
+    P = np.asarray(P, dtype=float)
+    pi = np.asarray(pi, dtype=float)
+    return float(np.abs(pi @ P - pi).sum())
+
+
+def limite_wielandt(n):
+    """Limite de Wielandt: toda matriz primitiva n×n satisfaz P^k > 0 para algum k ≤ (n−1)² + 1."""
+    return (n - 1) ** 2 + 1
+
+
+def menor_k_positivo(P, k_max=None):
+    """Menor k ≥ 1 com todas as entradas de P^k positivas, ou None se não houver até k_max.
+
+    Só importa o padrão de zeros: usa potências booleanas (sem erro de arredondamento).
+    k_max padrão = limite de Wielandt; passando dele sem sucesso, a matriz não é primitiva.
+    """
+    P = validar_estocastica(P)
+    n = P.shape[0]
+    if k_max is None:
+        k_max = limite_wielandt(n)
+    padrao = P > 0
+    atual = padrao.copy()
+    for k in range(1, k_max + 1):
+        if atual.all():
+            return k
+        atual = (atual.astype(np.uint8) @ padrao.astype(np.uint8)) > 0
+    return None
+# [/IA]
