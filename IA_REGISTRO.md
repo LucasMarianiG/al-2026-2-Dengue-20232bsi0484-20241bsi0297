@@ -14,8 +14,11 @@
 ## Registro de Uso de IA - Lucas (integrante A)
 
 Ferramenta: Claude Sonnet 5.5 (Anthropic), via claude.ai, em um Project do trabalho, conversa
-"Canal B - engenharia". Os pedidos abaixo
-são descritos de forma resumida; o link traz o texto integral.
+"Canal B - engenharia". Os pedidos feitos à ferramenta estão descritos de forma resumida na
+tabela abaixo. O texto integral da conversa não foi publicado por conter informações pessoais
+alheias ao trabalho, mas está guardado pelo autor A e será entregue ao professor se solicitado.
+Também usei uma segunda conversa do mesmo Project ("Canal A - tutor"), apenas para estudo de
+conceitos, sem geração de código.
 
 | Data | Etapa | Finalidade | O que pedi (resumo) | O que foi produzido | Aceito / modificado / rejeitado | Como verifiquei |
 |---|---|---|---|---|---|---|
@@ -26,3 +29,7 @@ são descritos de forma resumida; o link traz o texto integral.
 | 14/11/2026 | E1 | Execução | Roteiro para o download oficial e a conferência dos hashes | Comandos de conferência (PowerShell) | Aceito | 79 arquivos, 83 linhas no manifesto, 0 divergências |
 | 12 a 16/11/2026 | Gestão | Revisão | Revisão do estado do repositório (commits, testes, registro de IA) | Lista de problemas e plano de correção | Aceito | Rodei `pytest` e confirmei cada ponto |
 | 16/11/2026 | Arrumação | Código e documentação | `pytest.ini`, testes da E4 como skip, README | Esses três arquivos | Aceito | `pytest`: 4 passed, 2 skipped |
+| 18/11/2026 | E1 | Código e testes | `src/dados.py` (ler_bruto, carregar_serie, contar_transicoes) e `tests/test_dados.py` | Os dois arquivos, marcados com `# [IA]` | Aceito sem alterações (arquivos no GitHub conferidos contra a versão gerada) | `pytest`: 12 passed; teste de mutação (função quebrada de propósito, testes falharam); segunda implementação por laço sobre a série real de Serra |
+| 18/11/2026 | E1 | Análise de dados | Exploração dos 78 CSV congelados: lacunas, duplicatas, níveis, elegibilidade | Resultados em texto na conversa (não geram arquivo no repositório); serão reproduzidos por `src/etapa1.py` | Aceito como pista; só vale o que o código do repositório regenerar | Conferência com as contagens do código (a repetir na auditoria) |
+| 18/11/2026 | Gestão | Revisão | Verificação do estado do repositório e correção de marcadores e registro | Lista de correções (incluindo a de `test_dados.py`) | Aceito | `pytest`; contagem de marcadores `# [IA]`/`# [/IA]` por arquivo |
+| 18/11/2026 | E1 | Código e testes | `src/etapa1.py` (auditoria dos 78 municípios, conferência de hashes, elegibilidade e 2 gráficos) e `tests/test_etapa1.py` | Os dois arquivos, marcados com `# [IA]`, e os resultados que eles geram (`results/e1_auditoria.csv`, `results/tabelas/e1_segundo_municipio.csv`, 2 figuras) | Aceito sem alterações (hash dos arquivos conferido contra a versão testada) | `pytest`: 31 passed, 2 skipped; teste de mutação em 7 pontos (uma quebra passou, o teste foi reforçado e a quebra passou a ser detectada); contagens dos 78 municípios conferidas por um segundo caminho (`csv` + `datetime`, sem pandas); resultados gerados no meu computador idênticos aos gerados no ambiente da IA |
