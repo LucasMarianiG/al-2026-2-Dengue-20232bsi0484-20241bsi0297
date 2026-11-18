@@ -56,7 +56,8 @@ executado de novo: o script recusa rodar se o manifesto já existe.
 README.md          IA_REGISTRO.md     requirements.txt     pytest.ini     run_all.py
 data/raw/          data/MANIFEST.txt
 src/               download.py, dados.py, markov.py, etapa1.py ... etapa8.py
-tests/             test_markov.py, test_dados.py, test_etapa1.py, test_markov_e3.py, test_etapa3.py
+tests/             test_markov.py, test_dados.py, test_etapa1.py, test_markov_e3.py, test_etapa3.py,
+                   test_markov_e4.py, test_etapa4.py, test_markov_e5.py, test_etapa5.py
 results/tabelas/   results/figuras/
 relatorio/
 ```
@@ -69,7 +70,9 @@ relatorio/
 | E1 conferência nos Canais 2 e 3 (10 semanas; boletim da Sesa) | pendente |
 | E2 (matriz estimada, erros-padrão, Laplace) | pendente |
 | E3 (π por três métodos, iterações, primitividade, Wielandt) | código, testes e resultados concluídos; revisão pendente |
-| E4 a E8 | pendentes |
+| E4 (espectro, meia-vida, P^52 por duas vias, κ₁, curvas de decaimento) | código, testes e resultados concluídos; revisão pendente |
+| E5 (permanência, histograma × geométrica, matriz M por dois caminhos, Kac, tempos empíricos) | código, testes e resultados concluídos; revisão pendente |
+| E6 a E8 | pendentes |
 
 ## Figuras e tabelas do relatório → arquivo que as gera
 
@@ -84,6 +87,13 @@ Numeração no relatório a definir; `run_all.py` ainda não existe (gera tudo a
 | π por método, iterações e resíduos (E3) | `results/tabelas/e3_pi_metodos.csv` | `src/etapa3.py` |
 | Resumo da E3: menor k, Wielandt, \|λ₂\|, discordância (E3) | `results/tabelas/e3_resumo.csv` | `src/etapa3.py` |
 | Convergência do método das potências em Serra (E3) | `results/figuras/e3_convergencia_serra.png` | `src/etapa3.py` |
+| Autovalores (parte real, imaginária, módulo) por território (E4) | `results/tabelas/e4_espectro.csv` | `src/etapa4.py` |
+| Resumo da E4: \|λ₂\|, meia-vida, κ₁(V), diferença de P^52, traço e determinante (E4) | `results/tabelas/e4_resumo.csv` | `src/etapa4.py` |
+| Decaimento de \|\|e_i P^n − π\|\|₁ com a reta C\|λ₂\|^n, Serra, Vitória e ES (E4) | `results/figuras/e4_decaimento_serra.png`, `e4_decaimento_vitoria.png`, `e4_decaimento_es.png` | `src/etapa4.py` |
+| Permanência do modelo × durações observadas sem censura (E5) | `results/tabelas/e5_permanencia.csv` | `src/etapa5.py` |
+| Histograma do nível 4 × geométrica do modelo (E5) | `results/tabelas/e5_histograma_nivel4.csv`, `results/figuras/e5_hist_nivel4_serra.png`, `e5_hist_nivel4_vitoria.png`, `e5_hist_nivel4_es.png` | `src/etapa5.py` |
+| Matriz M de primeira passagem por sistemas 3×3 e por Z (E5) | `results/tabelas/e5_M.csv` | `src/etapa5.py` |
+| Resumo da E5: Kac, m14 e m41 do modelo × empíricos (E5) | `results/tabelas/e5_resumo.csv` | `src/etapa5.py` |
 
 ## Uso de IA
 
