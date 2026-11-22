@@ -54,10 +54,11 @@ executado de novo: o script recusa rodar se o manifesto já existe.
 
 ```
 README.md          IA_REGISTRO.md     requirements.txt     pytest.ini     run_all.py
-data/raw/          data/MANIFEST.txt
-src/               download.py, dados.py, markov.py, etapa1.py ... etapa8.py
+data/raw/          data/MANIFEST.txt   data/canal2_niveis_site.csv   data/canal3_boletim_sesa_2024.csv
+src/               download.py, dados.py, markov.py, etapa1.py ... etapa8.py, canal2.py, canal3.py
 tests/             test_markov.py, test_dados.py, test_etapa1.py, test_markov_e3.py, test_etapa3.py,
-                   test_markov_e4.py, test_etapa4.py, test_markov_e5.py, test_etapa5.py
+                   test_markov_e4.py, test_etapa4.py, test_markov_e5.py, test_etapa5.py,
+                   test_canal2.py, test_canal3.py
 results/tabelas/   results/figuras/
 relatorio/
 ```
@@ -67,12 +68,30 @@ relatorio/
 | Etapa | Situação |
 |---|---|
 | E1 funções (`src/dados.py`), auditoria, elegibilidade, gráficos e testes | concluída |
-| E1 conferência nos Canais 2 e 3 (10 semanas; boletim da Sesa) | pendente |
+| E1 conferência nos Canais 2 e 3 (10 semanas por município; boletim da Sesa) | código, testes e resultados concluídos (ver abaixo); revisão pendente |
 | E2 (matriz estimada, erros-padrão, Laplace) | pendente |
 | E3 (π por três métodos, iterações, primitividade, Wielandt) | código, testes e resultados concluídos; revisão pendente |
 | E4 (espectro, meia-vida, P^52 por duas vias, κ₁, curvas de decaimento) | código, testes e resultados concluídos; revisão pendente |
 | E5 (permanência, histograma × geométrica, matriz M por dois caminhos, Kac, tempos empíricos) | código, testes e resultados concluídos; revisão pendente |
 | E6 a E8 | pendentes |
+
+## Conferências externas (Canais 2 e 3)
+
+Esta é a parte do trabalho que depende de leitura manual, e por isso as leituras estão versionadas.
+
+- **Canal 2** (`src/canal2.py`): 10 semanas sorteadas **para cada município** (resposta do professor em
+  22/11/2026), com `numpy.random.default_rng(2026)`, Serra primeiro e depois Vitória, entre as semanas
+  com nível registrado. O nível foi lido à mão na página de relatório de cada semana do InfoDengue
+  (`info.dengue.mat.br/report/ES/<geocode>/<AAAASS>`) em 22/11/2026 e está em
+  `data/canal2_niveis_site.csv` (cor do site: verde = 1, amarelo = 2, laranja = 3, vermelho = 4).
+  Resultado: 20 de 20 semanas coincidem com os dados congelados. Divergências futuras, se houver,
+  seriam explicadas por revisões retroativas e versão do modelo.
+- **Canal 3** (`src/canal3.py`): ano escolhido, 2024. O 52º boletim da dengue da Sesa-ES não traz total
+  anual por município (só o total do ES e a incidência de 4 semanas); os valores lidos do PDF, com o
+  hash do arquivo, estão em `data/canal3_boletim_sesa_2024.csv`. Comparamos o total do ES (soma dos 78
+  municípios na API) e a incidência de Serra nas SE 49 a 52; o total anual de Serra só existe na API.
+  A coluna `casconf` da API vem zerada e `casprov` fica 31% abaixo do boletim: resultados mantidos e
+  discutidos no relatório, sem escolher a coluna que "fecha melhor".
 
 ## Figuras e tabelas do relatório → arquivo que as gera
 
@@ -84,6 +103,8 @@ Numeração no relatório a definir; `run_all.py` ainda não existe (gera tudo a
 | Escolha e elegibilidade do 2º município (E1) | `results/tabelas/e1_segundo_municipio.csv` | `src/etapa1.py` |
 | Sequência de níveis de Serra (E1) | `results/figuras/e1_serie_serra.png` | `src/etapa1.py` |
 | Mapa de calor município × ano (E1) | `results/figuras/e1_mapa_calor.png` | `src/etapa1.py` |
+| Conferência do Canal 2: 20 semanas sorteadas e nível no site (E1) | `results/tabelas/e1_canal2_semanas.csv`, `results/tabelas/e1_canal2_conferencia.csv` | `src/canal2.py` (leitura manual em `data/canal2_niveis_site.csv`) |
+| Canal 3: API × boletim da Sesa 2024 (E1) | `results/tabelas/e1_canal3_comparacao.csv` | `src/canal3.py` (valores do boletim em `data/canal3_boletim_sesa_2024.csv`) |
 | π por método, iterações e resíduos (E3) | `results/tabelas/e3_pi_metodos.csv` | `src/etapa3.py` |
 | Resumo da E3: menor k, Wielandt, \|λ₂\|, discordância (E3) | `results/tabelas/e3_resumo.csv` | `src/etapa3.py` |
 | Convergência do método das potências em Serra (E3) | `results/figuras/e3_convergencia_serra.png` | `src/etapa3.py` |
