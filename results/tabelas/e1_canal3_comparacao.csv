@@ -1,0 +1,9 @@
+grandeza,escopo,periodo,boletim,api_casos,api_casprov,dif_rel_casos,dif_rel_casprov,observacao
+casos_provaveis_ano,ES,SE01-SE52/2024,241879.0,256943.0,166407.0,0.062279073421008024,-0.31202378048528395,soma de 78 municípios; boletim = confirmados + em investigação
+casos_confirmados_ano,ES,SE01-SE52/2024,128943.0,,,,,casconf zerada em toda a API: indisponível
+incidencia_semana,Serra,SE49/2024,29.39,30.746424355560436,,0.046152580998994046,,
+incidencia_semana,Serra,SE50/2024,27.66,34.223698538629776,,0.23729929640743946,,
+incidencia_semana,Serra,SE51/2024,37.84,40.81221804339272,,0.07854698846175251,,
+incidencia_semana,Serra,SE52/2024,35.72,28.550251187306117,,-0.20072085141920162,,
+incidencia_4semanas,Serra,SE49-SE52/2024,130.61,134.33259212488906,133.6005344021376,0.028501585827188168,0.022896672552925487,
+casos_ano,Serra,SE01-SE52/2024,,21345.0,20095.0,,,o boletim não publica total anual por município

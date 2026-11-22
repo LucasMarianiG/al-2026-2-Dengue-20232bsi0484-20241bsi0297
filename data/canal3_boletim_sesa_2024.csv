@@ -1,0 +1,8 @@
+grandeza,escopo,periodo,valor,unidade,fonte,sha256_pdf,conferido_em
+casos_provaveis_ano,ES,SE01-SE52/2024,241879,casos,52o boletim epidemiologico da dengue (Sesa-ES),f3f77c99634c78e80757e3f593eac34eab5236de10b0f271cd97296154e5b58e,2026-11-22
+casos_confirmados_ano,ES,SE01-SE52/2024,128943,casos,52o boletim epidemiologico da dengue (Sesa-ES),f3f77c99634c78e80757e3f593eac34eab5236de10b0f271cd97296154e5b58e,2026-11-22
+incidencia_semana,Serra,SE49/2024,29.39,casos por 100 mil,52o boletim epidemiologico da dengue (Sesa-ES),f3f77c99634c78e80757e3f593eac34eab5236de10b0f271cd97296154e5b58e,2026-11-22
+incidencia_semana,Serra,SE50/2024,27.66,casos por 100 mil,52o boletim epidemiologico da dengue (Sesa-ES),f3f77c99634c78e80757e3f593eac34eab5236de10b0f271cd97296154e5b58e,2026-11-22
+incidencia_semana,Serra,SE51/2024,37.84,casos por 100 mil,52o boletim epidemiologico da dengue (Sesa-ES),f3f77c99634c78e80757e3f593eac34eab5236de10b0f271cd97296154e5b58e,2026-11-22
+incidencia_semana,Serra,SE52/2024,35.72,casos por 100 mil,52o boletim epidemiologico da dengue (Sesa-ES),f3f77c99634c78e80757e3f593eac34eab5236de10b0f271cd97296154e5b58e,2026-11-22
+incidencia_4semanas,Serra,SE49-SE52/2024,130.61,casos por 100 mil,52o boletim epidemiologico da dengue (Sesa-ES),f3f77c99634c78e80757e3f593eac34eab5236de10b0f271cd97296154e5b58e,2026-11-22
