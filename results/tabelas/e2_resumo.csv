@@ -1,0 +1,4 @@
+territorio,soma_C,transicoes_validas,transicoes_recontadas_e1,min_P,max_erro_soma_linhas,zeros_estruturais,alpha,delta_pi_laplace
+Serra,573,573,573,0.0,0.0,1,0.5,0.007917984578553292
+Vitória,573,573,573,0.0,1.1102230246251565e-16,2,0.5,0.007245136116643888
+ES,44694,44694,44694,0.0,0.0,1,0.5,0.00018739419601205426
