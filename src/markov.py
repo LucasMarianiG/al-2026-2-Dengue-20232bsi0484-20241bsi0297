@@ -290,3 +290,156 @@ def primeira_passagem_fundamental(P, pi=None):
     np.fill_diagonal(M, 1.0 / pi)
     return M
 # [/IA]
+
+
+# [IA] Claude Sonnet 5.5 - 2026-11-23 - src/markov.py (E6): cadeia absorvente (N, t, variancia, B), serie de Neumann e simulacao
+def particao_absorvente(P, absorventes):
+    """Torna absorventes os estados dados (índices 0..n−1) e devolve (transientes, absorventes, Q, R).
+
+    Com os transientes primeiro, P = [[Q, R], [0, I]]: Q é o bloco transiente→transiente e R é o bloco
+    transiente→absorvente. As linhas dos estados absorventes em P são ignoradas (viram linhas da identidade).
+    """
+    P = validar_estocastica(P)
+    n = P.shape[0]
+    absorventes = sorted({int(a) for a in absorventes})
+    if not absorventes:
+        raise ValueError("é preciso ao menos um estado absorvente")
+    if absorventes[0] < 0 or absorventes[-1] >= n:
+        raise ValueError(f"estados absorventes fora de 0..{n - 1}: {absorventes}")
+    transientes = [i for i in range(n) if i not in absorventes]
+    if not transientes:
+        raise ValueError("é preciso ao menos um estado transiente")
+    Q = P[np.ix_(transientes, transientes)]
+    R = P[np.ix_(transientes, absorventes)]
+    return transientes, absorventes, Q, R
+
+
+def menor_m_norma_menor_que_1(Q, m_max=1000):
+    """Menor m ≥ 1 com ‖Q^m‖∞ < 1 (hipótese da proposição 4), ou None se não houver até m_max.
+
+    ‖·‖∞ é a maior soma, por linha, dos módulos das entradas.
+    """
+    Q = np.asarray(Q, dtype=float)
+    Qm = np.eye(Q.shape[0])
+    for m in range(1, m_max + 1):
+        Qm = Qm @ Q
+        if np.abs(Qm).sum(axis=1).max() < 1.0:
+            return m
+    return None
+
+
+def matriz_fundamental_inversa(Q):
+    """Caminho (i): N = (I − Q)⁻¹ por np.linalg.solve (LU com pivotamento parcial) contra a identidade.
+
+    Antes, confere a hipótese da proposição 4 (∥Q^m∥∞ < 1 para algum m), que garante I − Q invertível.
+    """
+    Q = np.asarray(Q, dtype=float)
+    if Q.ndim != 2 or Q.shape[0] != Q.shape[1]:
+        raise ValueError(f"Q deve ser quadrada; formato recebido: {Q.shape}")
+    if menor_m_norma_menor_que_1(Q) is None:
+        raise ValueError("nenhum m ≤ 1000 dá ‖Q^m‖∞ < 1: algum transiente não alcança um absorvente")
+    k = Q.shape[0]
+    return np.linalg.solve(np.eye(k) - Q, np.eye(k))
+
+
+def soma_parcial_neumann(Q, K):
+    """S_K = Σ_{k=0}^{K} Q^k, por laço explícito (soma dos termos Q^k, sem inversão)."""
+    Q = np.asarray(Q, dtype=float)
+    if int(K) != K or K < 0:
+        raise ValueError("K deve ser inteiro não negativo")
+    k = Q.shape[0]
+    S, termo = np.eye(k), np.eye(k)
+    for _ in range(int(K)):
+        termo = termo @ Q
+        S = S + termo
+    return S
+
+
+def neumann_ate_tolerancia(Q, tol=1e-14, max_termos=200_000):
+    """Caminho (ii): soma Σ Q^k até ‖Q^k‖∞ < tol. Devolve (S, K) com K o último expoente somado."""
+    Q = np.asarray(Q, dtype=float)
+    k = Q.shape[0]
+    S, termo = np.eye(k), np.eye(k)
+    for K in range(1, max_termos + 1):
+        termo = termo @ Q
+        S = S + termo
+        if np.abs(termo).sum(axis=1).max() < tol:
+            return S, K
+    raise ValueError(f"série de Neumann não convergiu em {max_termos} termos")
+
+
+def trajetoria_neumann(Q, N, K_max):
+    """‖N − S_K‖∞ para K = 0..K_max (soma incremental), para a conferência N × série."""
+    Q = np.asarray(Q, dtype=float)
+    k = Q.shape[0]
+    S, termo = np.eye(k), np.eye(k)
+    erros = [np.abs(N - S).sum(axis=1).max()]
+    for _ in range(int(K_max)):
+        termo = termo @ Q
+        S = S + termo
+        erros.append(np.abs(N - S).sum(axis=1).max())
+    return np.array(erros)
+
+
+def tempo_ate_absorcao(N):
+    """t = N·1: número médio de passos até a absorção, a partir de cada transiente."""
+    N = np.asarray(N, dtype=float)
+    return N @ np.ones(N.shape[0])
+
+
+def tempo_ate_absorcao_sistema(Q):
+    """Caminho independente para t: resolve (I − Q)t = 1 (sem formar N)."""
+    Q = np.asarray(Q, dtype=float)
+    k = Q.shape[0]
+    return np.linalg.solve(np.eye(k) - Q, np.ones(k))
+
+
+def variancia_tempo_absorcao(N, t=None):
+    """Var = (2N − I)t − t∘t (produto de Hadamard): variância do tempo até a absorção."""
+    N = np.asarray(N, dtype=float)
+    if t is None:
+        t = tempo_ate_absorcao(N)
+    return (2.0 * N - np.eye(N.shape[0])) @ t - t * t
+
+
+def prob_absorcao(N, R):
+    """B = N R: B[i, a] = probabilidade de ser absorvido em a partindo do transiente i (cada linha soma 1)."""
+    return np.asarray(N, dtype=float) @ np.asarray(R, dtype=float)
+
+
+def prob_absorcao_sistema(Q, R):
+    """Caminho independente para B: resolve (I − Q)B = R (sem formar N)."""
+    Q = np.asarray(Q, dtype=float)
+    return np.linalg.solve(np.eye(Q.shape[0]) - Q, np.asarray(R, dtype=float))
+
+
+def simular_absorcao(P, absorventes, inicial, n_trajetorias, rng, max_passos=100_000):
+    """Terceiro caminho: simula n trajetórias a partir do estado `inicial` (transiente) até a absorção.
+
+    Devolve (tempos, destinos): passos até a absorção e índice (em 0..n−1) do absorvente atingido.
+    A próxima posição é sorteada pela inversa da distribuição acumulada da linha de P.
+    """
+    P = validar_estocastica(P)
+    n = P.shape[0]
+    absorventes = sorted({int(a) for a in absorventes})
+    eh_abs = np.zeros(n, dtype=bool)
+    eh_abs[absorventes] = True
+    if eh_abs[inicial]:
+        raise ValueError("o estado inicial deve ser transiente")
+    acumulada = np.cumsum(P, axis=1)
+    estado = np.full(n_trajetorias, int(inicial), dtype=int)
+    tempo = np.zeros(n_trajetorias, dtype=int)
+    ativo = np.ones(n_trajetorias, dtype=bool)
+    for passo in range(1, max_passos + 1):
+        idx = np.flatnonzero(ativo)
+        if idx.size == 0:
+            break
+        u = rng.random(idx.size)
+        novo = np.minimum((u[:, None] > acumulada[estado[idx]]).sum(axis=1), n - 1)
+        estado[idx] = novo
+        tempo[idx] = passo
+        ativo[idx[eh_abs[novo]]] = False
+    if ativo.any():
+        raise ValueError(f"{int(ativo.sum())} trajetórias não foram absorvidas em {max_passos} passos")
+    return tempo, estado
+# [/IA]
